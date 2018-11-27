@@ -20,8 +20,8 @@ BROWSER = webdriver.Chrome(CHROME_DRIVER_PATH)
 TIMEOUT = 30
 
 JAZZ_LOGIN_URL = r"https://jazz.cerner.com:9443/qm/auth/authrequired"
-JAZZ_NET_USERNAME = "RRCGuest"
-JAZZ_NET_PASSWORD = "readOnly*"
+JAZZ_NET_USERNAME = "**********"
+JAZZ_NET_PASSWORD = "**********"
 
 JAZZ_GET_ALL_PROJECTS_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/projects"
 JAZZ_GET_PROJECT_TESTSCRIPTS_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript?page={}"
