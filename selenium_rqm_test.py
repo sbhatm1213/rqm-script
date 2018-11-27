@@ -167,11 +167,13 @@ def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
 
 
 def get_testcase_by_id(project, testcase_id):
-    """Get single Testcase Details - By TITLE .
+    """Get single Testcase Details - By ID .
 
     Params:
     project - > Project title .
-    testcase_title - > Title of Testcase - of which you want to get the Details ."""
+    testcase_id - > ID of Testcase - of which you want to get the Details .
+
+    Then call method to get details of Testscripts that come under this Testcase."""
 
     write_to_path = r'C:/Users/SB063964/Desktop/rqm_url_utility_testing/selenium_testcase_details/testcase_{}.txt'.format(testcase_id)
 
@@ -218,17 +220,25 @@ def get_testcases(project, testcases_url=None, get_page=0):
         else:
             get_jazz_testcases_url = testcases_url
 
+        # Open new tab
         BROWSER.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 't')
+
+        # Load Testcase route, which gives XML response.
         BROWSER.get(get_jazz_testcases_url.format(project, get_page))
 
         testcases_pre_tag_present = EC.presence_of_element_located((By.CSS_SELECTOR, 'body > pre'))
         WebDriverWait(BROWSER, TIMEOUT).until(testcases_pre_tag_present)
         time.sleep(2)
 
+        # The XML is inside a <PRE> tag. So to get the XML, get the text inside 'PRE'
         testcases_pre_tag = BROWSER.find_element_by_tag_name('pre')
         testcases_xml_text = testcases_pre_tag.text
+
+        # Convert the XML to JSON
         all_testcases_dict = xmltodict.parse(testcases_xml_text)
 
+        # Write the JSON form the response to file at
+        # 'rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_{}.txt'
         with open('rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_{}.txt'.format(project,
                 str(get_page)), 'w') as selenium_testcases_file:
             selenium_testcases_file.write(json.dumps(all_testcases_dict))
@@ -255,6 +265,7 @@ def get_testcases(project, testcases_url=None, get_page=0):
         print("current page >>> " + str(current_page) + " ; next page >>> " + str(next_page)
               + " ; last page >>> " + str(last_page))
 
+        # Loop through each Testcase, and call method to get Testcase Details using the particular Testcase ID
         for testcase in all_testcases_dict['feed']['entry']:
             # print(testcase['id'])
             # print(testcase['title']['#text'])
@@ -270,6 +281,8 @@ def get_testcases(project, testcases_url=None, get_page=0):
 
         # print("Nothing")
 
+        # If Current page is not the Last page, get next <page-size> [currently default 50] Testcases ,
+        # by making Recursive call .
         if last_page > current_page:
             get_testcases(project, next_page_link)
         else:
@@ -330,9 +343,11 @@ def jazz_login():
 
         print("All Projects => " + str(project_titles))
 
+        # Write the JSON form the response to file at 'rqm_url_utility_testing\\selenium_projects\\projects.txt'
         with open('rqm_url_utility_testing\\selenium_projects\\projects.txt', 'w') as selenium_projects_file:
             selenium_projects_file.write(json.dumps(all_projects_dict))
 
+        # Loop through each Project, call method to get Testcases associated with the particular Project
         for project in project_titles:
             # get_testscripts(project, )
             get_testcases(project)
