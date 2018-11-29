@@ -21,15 +21,16 @@ BROWSER = webdriver.Chrome(CHROME_DRIVER_PATH)
 TIMEOUT = 30
 
 JAZZ_LOGIN_URL = r"https://jazz.cerner.com:9443/qm/auth/authrequired"
-JAZZ_NET_USERNAME = "******"
-JAZZ_NET_PASSWORD = "******"
+JAZZ_NET_USERNAME = "*********"
+JAZZ_NET_PASSWORD = "*********"
 
-JAZZ_GET_ALL_PROJECTS_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/projects"
-JAZZ_GET_PROJECT_TESTSCRIPTS_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript?page={}"
-JAZZ_GET_PROJECT_TESTCASES_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase?page={}"
-JAZZ_GET_TESTSCRIPT_BY_ID_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript/urn:com.ibm.rqm:testscript:{}"
-JAZZ_GET_TESTCASE_BY_TITLE_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase?fields=feed/entry/content/testcase[title='{}']/*"
-JAZZ_GET_TESTCASE_BY_ID_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase/urn:com.ibm.rqm:testcase:{}"
+JAZZ_RESOURCES_BASE_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/"
+JAZZ_GET_ALL_PROJECTS_URL = JAZZ_RESOURCES_BASE_URL + r"projects"
+JAZZ_GET_PROJECT_TESTSCRIPTS_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testscript?page={}"
+JAZZ_GET_PROJECT_TESTCASES_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase?page={}"
+JAZZ_GET_TESTSCRIPT_BY_ID_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testscript/urn:com.ibm.rqm:testscript:{}"
+JAZZ_GET_TESTCASE_BY_TITLE_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase?fields=feed/entry/content/testcase[title='{}']/*"
+JAZZ_GET_TESTCASE_BY_ID_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase/urn:com.ibm.rqm:testcase:{}"
 
 RQM_URL_UTILITY_FOLDER = r"C:/Users/SB063964/Desktop/rqm_url_utility_testing/"
 RQM_URL_UTILITY_JAR_PATH = r"C:/RQM-Extras-RQMUrlUtil-5.0.2/RQMUrlUtility.jar"
@@ -94,8 +95,8 @@ def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
 #     testscript_id - > ID of Testscript - of which you want to get the Details ."""
 #
 #     write_to_path = 'C:/Users/SB063964/Desktop/rqm_url_utility_testing/selenium_testscript_details/rqm_testscript_{}.txt'.format(testscript_id)
-#     # get_jazz_testscripts_url = "https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript?fields=feed/entry/content/testscript[title='{}']/*"\
-#     get_jazz_testscript_url = "https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript/urn:com.ibm.rqm:testscript:{}".format(project, testscript_id)
+#     # get_jazz_testscripts_url = JAZZ_RESOURCES_BASE_URL + r"{}/testscript?fields=feed/entry/content/testscript[title='{}']/*"\
+#     get_jazz_testscript_url = JAZZ_RESOURCES_BASE_URL + r"{}/testscript/urn:com.ibm.rqm:testscript:{}".format(project, testscript_id)
 #
 #     run_rqm_url_utility(write_to_path, get_jazz_testscript_url)
 #
@@ -107,7 +108,7 @@ def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
 #
 #     try:
 #         if testscripts_url is None:
-#             get_jazz_testscripts_url = 'https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript?page={}'.format(
+#             get_jazz_testscripts_url = JAZZ_RESOURCES_BASE_URL + r'{}/testscript?page={}'.format(
 #                 project, get_page)
 #         else:
 #             get_jazz_testscripts_url = testscripts_url
@@ -223,7 +224,16 @@ def get_testcase_by_id(project, testcase_id):
 
                 all_rows = []
 
-                for testscript_step in testscript_details_dict['ns2:testscript']['ns2:steps']['ns9:step']:
+                if isinstance(testscript_details_dict['ns2:testscript']['ns2:steps']['ns9:step'], dict):
+                    all_testscript_steps = [testscript_details_dict['ns2:testscript']['ns2:steps']['ns9:step']]
+                elif isinstance(testscript_details_dict['ns2:testscript']['ns2:steps']['ns9:step'], list):
+                    all_testscript_steps = testscript_details_dict['ns2:testscript']['ns2:steps']['ns9:step']
+
+                for testscript_step in all_testscript_steps:
+
+                    step_description = testscript_step.get('ns9:description')
+                    step_expected_result = testscript_step.get('ns9:expectedResult')
+                    step_comment = testscript_step.get('ns9:comment')
 
                     all_rows.append([
                             r'{}'.format(testcase_id),
@@ -231,9 +241,9 @@ def get_testcase_by_id(project, testcase_id):
                             r'{}'.format(testscript_details_dict['ns2:testscript']['ns2:webId']),
                             r'{}'.format(testscript_details_dict['ns2:testscript']['ns3:title']),
                             r'{}'.format(testscript_step['ns9:title']),
-                            r'{}'.format(testscript_step['ns9:description']['div:div']['#text']),
-                            r'{}'.format(testscript_step['ns9:expectedResult']['div:div']['#text']),
-                            r'{}'.format(testscript_step['ns9:comment'])
+                            r'{}'.format(step_description['div:div']['#text'] if step_description else ''),
+                            r'{}'.format(step_expected_result['div:div']['#text'] if step_expected_result else ''),
+                            r'{}'.format(step_comment if step_comment else '')
                     ])
 
                 with open('rqm_url_utility_testing\\selenium_testcase_details\\testcase_{}.csv'.format(
@@ -264,16 +274,14 @@ def get_testcases(project, testcases_url=None, get_page=0):
     Then call method to get Details of Testcase.
     """
     try:
-        if testcases_url is None:
-            get_jazz_testcases_url = r'https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase?page={}'
-        else:
-            get_jazz_testcases_url = testcases_url
-
         # Open new tab
         BROWSER.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 't')
 
         # Load Testcase route, which gives XML response.
-        BROWSER.get(get_jazz_testcases_url.format(project, get_page))
+        if testcases_url is None:
+            BROWSER.get(JAZZ_GET_PROJECT_TESTCASES_URL.format(project, get_page))
+        else:
+            BROWSER.get(testcases_url.format(project, get_page))
 
         testcases_pre_tag_present = EC.presence_of_element_located((By.CSS_SELECTOR, 'body > pre'))
         WebDriverWait(BROWSER, TIMEOUT).until(testcases_pre_tag_present)
@@ -410,5 +418,8 @@ def jazz_login():
 
 
 if __name__ == "__main__":
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
     jazz_login()
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
+
 
