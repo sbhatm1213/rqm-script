@@ -3,6 +3,7 @@ import time
 import pyperclip
 import xmltodict
 import json
+import csv
 import shlex, subprocess
 from datetime import date
 # from robobrowser import RoboBrowser
@@ -20,8 +21,8 @@ BROWSER = webdriver.Chrome(CHROME_DRIVER_PATH)
 TIMEOUT = 30
 
 JAZZ_LOGIN_URL = r"https://jazz.cerner.com:9443/qm/auth/authrequired"
-JAZZ_NET_USERNAME = "**********"
-JAZZ_NET_PASSWORD = "**********"
+JAZZ_NET_USERNAME = "******"
+JAZZ_NET_PASSWORD = "******"
 
 JAZZ_GET_ALL_PROJECTS_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/projects"
 JAZZ_GET_PROJECT_TESTSCRIPTS_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript?page={}"
@@ -29,6 +30,9 @@ JAZZ_GET_PROJECT_TESTCASES_URL = r"https://jazz.cerner.com:9443/qm/service/com.i
 JAZZ_GET_TESTSCRIPT_BY_ID_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testscript/urn:com.ibm.rqm:testscript:{}"
 JAZZ_GET_TESTCASE_BY_TITLE_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase?fields=feed/entry/content/testcase[title='{}']/*"
 JAZZ_GET_TESTCASE_BY_ID_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase/urn:com.ibm.rqm:testcase:{}"
+
+RQM_URL_UTILITY_FOLDER = r"C:/Users/SB063964/Desktop/rqm_url_utility_testing/"
+RQM_URL_UTILITY_JAR_PATH = r"C:/RQM-Extras-RQMUrlUtil-5.0.2/RQMUrlUtility.jar"
 
 
 #
@@ -48,6 +52,7 @@ JAZZ_GET_TESTCASE_BY_ID_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.
 #         selenium_testscript_file.write(json.dumps(testscript_dict))
 #
 
+
 def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
     """Used to make requests to Jazz API's -
     by making use of the RQM-URL-Utility Jar .
@@ -58,9 +63,9 @@ def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
     result_write_path - > Path to which you want to write the API Response . """
 
     rqm_utility_dict = {
-        'rqm_jar_path': 'C:/RQM-Extras-RQMUrlUtil-5.0.2/RQMUrlUtility.jar',
-        'user': 'RRCGuest',
-        'password': 'readOnly*',
+        'rqm_jar_path': RQM_URL_UTILITY_JAR_PATH,
+        'user': JAZZ_NET_USERNAME,
+        'password': JAZZ_NET_PASSWORD,
         'write_to_path': result_write_path,
         'get_jazz_testscripts_url': jazz_get_resources_url
     }
@@ -175,7 +180,7 @@ def get_testcase_by_id(project, testcase_id):
 
     Then call method to get details of Testscripts that come under this Testcase."""
 
-    write_to_path = r'C:/Users/SB063964/Desktop/rqm_url_utility_testing/selenium_testcase_details/testcase_{}.txt'.format(testcase_id)
+    write_to_path = RQM_URL_UTILITY_FOLDER + r'selenium_testcase_details/testcase_{}.txt'.format(testcase_id)
 
     run_rqm_url_utility(write_to_path, JAZZ_GET_TESTCASE_BY_ID_URL.format(project, testcase_id))
 
@@ -186,23 +191,67 @@ def get_testcase_by_id(project, testcase_id):
 
     # print(testcase_details_dict)
 
-    if isinstance(testcase_details_dict['ns2:testcase'].get(['ns2:testscript']), dict):
+    all_testscripts = None
+
+    if isinstance(testcase_details_dict['ns2:testcase'].get('ns2:testscript'), dict):
         all_testscripts = [testcase_details_dict['ns2:testcase']['ns2:testscript']]
     elif isinstance(testcase_details_dict['ns2:testcase'].get('ns2:testscript'), list):
         all_testscripts = testcase_details_dict['ns2:testcase']['ns2:testscript']
 
-    for testscript in all_testscripts:
-        get_testscript_url = testscript['@href']
-        testscript_title = get_testscript_url.split('/testscript/')
-        testscript_id = get_testscript_url.split(':testscript:')
-        if len(testscript_title):
-            write_testscript_to_path = r'C:/Users/SB063964/Desktop/rqm_url_utility_testing/selenium_testscript_details/testscript_{}.txt'.format(testscript_title[1])
-        elif len(testscript_id):
-            write_testscript_to_path = r'C:/Users/SB063964/Desktop/rqm_url_utility_testing/selenium_testscript_details/testscript_{}.txt'.format(testscript_id[1])
-        # print(write_testscript_to_path)
-        # print(get_testscript_url)
-        if write_testscript_to_path:
-            run_rqm_url_utility(write_testscript_to_path, get_testscript_url)
+    if all_testscripts:
+        for testscript in all_testscripts:
+            get_testscript_url = testscript['@href']
+            testscript_title = get_testscript_url.split('/testscript/')
+            testscript_id = get_testscript_url.split(':testscript:')
+            if len(testscript_title):
+                print(" Testscript Title >>> "+str(testscript_title)+" >>> Now get details of this Testscript . ")
+                write_testscript_to_path = RQM_URL_UTILITY_FOLDER + r'selenium_testscript_details/testscript_{}.txt'.format(testscript_title[1])
+            elif len(testscript_id):
+                print(" Testscript ID >>> "+str(testscript_title)+" >>> Now get details of this Testscript . ")
+                write_testscript_to_path = RQM_URL_UTILITY_FOLDER + r'selenium_testscript_details/testscript_{}.txt'.format(testscript_id[1])
+            # print(write_testscript_to_path)
+            # print(get_testscript_url)
+            if write_testscript_to_path:
+                run_rqm_url_utility(write_testscript_to_path, get_testscript_url)
+
+                with open(write_testscript_to_path, 'r') as testscript_file:
+                    testscript_details = testscript_file.read()
+
+                testscript_details_dict = xmltodict.parse(testscript_details)
+
+                # print(testscript_details_dict)
+
+                all_rows = []
+
+                for testscript_step in testscript_details_dict['ns2:testscript']['ns2:steps']['ns9:step']:
+
+                    all_rows.append([
+                            r'{}'.format(testcase_id),
+                            r'{}'.format(testcase_details_dict['ns2:testcase']['ns3:title']),
+                            r'{}'.format(testscript_details_dict['ns2:testscript']['ns2:webId']),
+                            r'{}'.format(testscript_details_dict['ns2:testscript']['ns3:title']),
+                            r'{}'.format(testscript_step['ns9:title']),
+                            r'{}'.format(testscript_step['ns9:description']['div:div']['#text']),
+                            r'{}'.format(testscript_step['ns9:expectedResult']['div:div']['#text']),
+                            r'{}'.format(testscript_step['ns9:comment'])
+                    ])
+
+                with open('rqm_url_utility_testing\\selenium_testcase_details\\testcase_{}.csv'.format(
+                        testcase_id), 'w', newline='') as testcase_file:
+                    testcase_writer = csv.writer(testcase_file)
+                    testcase_writer.writerow([
+                        'TEST_CASE_ID',
+                        'TEST_CASE_TITLE',
+                        'TEST_SCRIPT_ID',
+                        'TEST_SCRIPT_TITLE',
+                        'STEP_TITLE',
+                        'STEP_DESCRIPTION',
+                        'STEP_EXPECTED_RESULT',
+                        'STEP_COMMENT'
+                    ])
+                    testcase_writer.writerows(all_rows)
+                    print("Check CSV file => "+"testcase_{}.csv".format(testcase_id))
+                    print("===============================>>>>>>>>>>>><<<<<<<<<<<<=========================")
 
     # print(xmltodict.parse(testcase_details))
 
@@ -216,7 +265,7 @@ def get_testcases(project, testcases_url=None, get_page=0):
     """
     try:
         if testcases_url is None:
-            get_jazz_testcases_url = 'https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase?page={}'
+            get_jazz_testcases_url = r'https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/{}/testcase?page={}'
         else:
             get_jazz_testcases_url = testcases_url
 
@@ -238,8 +287,8 @@ def get_testcases(project, testcases_url=None, get_page=0):
         all_testcases_dict = xmltodict.parse(testcases_xml_text)
 
         # Write the JSON form the response to file at
-        # 'rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_{}.txt'
-        with open('rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_{}.txt'.format(project,
+        # 'rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_page_{}.txt'
+        with open('rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_page_{}.txt'.format(project,
                 str(get_page)), 'w') as selenium_testcases_file:
             selenium_testcases_file.write(json.dumps(all_testcases_dict))
 
@@ -270,11 +319,12 @@ def get_testcases(project, testcases_url=None, get_page=0):
             # print(testcase['id'])
             # print(testcase['title']['#text'])
             testcase_title = testcase['title']['#text']
+
             for link in testcase['link']:
                 # print(json.dumps(link))
                 if link['@title'] == 'Web Console':
                     testcase_id = link['@href'].split('&id=')[1]
-                    print("Test Case ID >>> "+str(testcase_id))
+                    print("Test Case ID >>> "+str(testcase_id)+" >>> Now get details of this Test Case .")
 
                     # get_testscript_by_id(project, testscript_id)
                     get_testcase_by_id(project, testcase_id)
@@ -343,7 +393,8 @@ def jazz_login():
 
         print("All Projects => " + str(project_titles))
 
-        # Write the JSON form the response to file at 'rqm_url_utility_testing\\selenium_projects\\projects.txt'
+        # Write the JSON form the response to file at
+        # 'rqm_url_utility_testing\\selenium_projects\\projects.txt'
         with open('rqm_url_utility_testing\\selenium_projects\\projects.txt', 'w') as selenium_projects_file:
             selenium_projects_file.write(json.dumps(all_projects_dict))
 
