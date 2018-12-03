@@ -21,8 +21,8 @@ BROWSER = webdriver.Chrome(CHROME_DRIVER_PATH)
 TIMEOUT = 30
 
 JAZZ_LOGIN_URL = r"https://jazz.cerner.com:9443/qm/auth/authrequired"
-JAZZ_NET_USERNAME = "*********"
-JAZZ_NET_PASSWORD = "*********"
+JAZZ_NET_USERNAME = "RRCGuest"
+JAZZ_NET_PASSWORD = "readOnly*"
 
 JAZZ_RESOURCES_BASE_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/"
 JAZZ_GET_ALL_PROJECTS_URL = JAZZ_RESOURCES_BASE_URL + r"projects"
@@ -30,7 +30,7 @@ JAZZ_GET_PROJECT_TESTSCRIPTS_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testscript?pag
 JAZZ_GET_PROJECT_TESTCASES_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase?page={}"
 JAZZ_GET_TESTSCRIPT_BY_ID_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testscript/urn:com.ibm.rqm:testscript:{}"
 JAZZ_GET_TESTCASE_BY_TITLE_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase?fields=feed/entry/content/testcase[title='{}']/*"
-JAZZ_GET_TESTCASE_BY_ID_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase/urn:com.ibm.rqm:testcase:{}"
+JAZZ_GET_TESTCASE_BY_ID_URL = JAZZ_RESOURCES_BASE_URL + r"{}/testcase/urn:com.ibm.rqm:testcase:{}?calmlinks=true"
 
 RQM_URL_UTILITY_FOLDER = r"C:/Users/SB063964/Desktop/rqm_url_utility_testing/"
 RQM_URL_UTILITY_JAR_PATH = r"C:/RQM-Extras-RQMUrlUtil-5.0.2/RQMUrlUtility.jar"
@@ -204,12 +204,15 @@ def get_testcase_by_id(project, testcase_id):
             get_testscript_url = testscript['@href']
             testscript_title = get_testscript_url.split('/testscript/')
             testscript_id = get_testscript_url.split(':testscript:')
-            if len(testscript_title):
+            # print(str(testscript_title))
+            # print(str(testscript_id))
+            if len(testscript_id) > 1:
+                print(" Testscript ID >>> "+str(testscript_id)+" >>> Now get details of this Testscript . ")
+                write_testscript_to_path = RQM_URL_UTILITY_FOLDER + r'selenium_testscript_details/testscript_{}.txt'.format(testscript_id[1])
+            elif len(testscript_title) > 1:
                 print(" Testscript Title >>> "+str(testscript_title)+" >>> Now get details of this Testscript . ")
                 write_testscript_to_path = RQM_URL_UTILITY_FOLDER + r'selenium_testscript_details/testscript_{}.txt'.format(testscript_title[1])
-            elif len(testscript_id):
-                print(" Testscript ID >>> "+str(testscript_title)+" >>> Now get details of this Testscript . ")
-                write_testscript_to_path = RQM_URL_UTILITY_FOLDER + r'selenium_testscript_details/testscript_{}.txt'.format(testscript_id[1])
+
             # print(write_testscript_to_path)
             # print(get_testscript_url)
             if write_testscript_to_path:
@@ -241,8 +244,8 @@ def get_testcase_by_id(project, testcase_id):
                             r'{}'.format(testscript_details_dict['ns2:testscript']['ns2:webId']),
                             r'{}'.format(testscript_details_dict['ns2:testscript']['ns3:title']),
                             r'{}'.format(testscript_step['ns9:title']),
-                            r'{}'.format(step_description['div:div']['#text'] if step_description else ''),
-                            r'{}'.format(step_expected_result['div:div']['#text'] if step_expected_result else ''),
+                            r'{}'.format(step_description['div:div'] if step_description else ''),
+                            r'{}'.format(step_expected_result['div:div'] if step_expected_result else ''),
                             r'{}'.format(step_comment if step_comment else '')
                     ])
 
