@@ -4,6 +4,8 @@ import pyperclip
 import xmltodict
 import json
 import csv
+import glob
+import os
 import shlex, subprocess
 from datetime import date
 # from robobrowser import RoboBrowser
@@ -21,8 +23,8 @@ BROWSER = webdriver.Chrome(CHROME_DRIVER_PATH)
 TIMEOUT = 30
 
 JAZZ_LOGIN_URL = r"https://jazz.cerner.com:9443/qm/auth/authrequired"
-JAZZ_NET_USERNAME = "******"
-JAZZ_NET_PASSWORD = "******"
+JAZZ_NET_USERNAME = "********"
+JAZZ_NET_PASSWORD = "********"
 
 JAZZ_RESOURCES_BASE_URL = r"https://jazz.cerner.com:9443/qm/service/com.ibm.rqm.integration.service.IIntegrationService/resources/"
 JAZZ_GET_ALL_PROJECTS_URL = JAZZ_RESOURCES_BASE_URL + r"projects"
@@ -52,6 +54,15 @@ RQM_URL_UTILITY_JAR_PATH = r"C:/RQM-Extras-RQMUrlUtil-5.0.2/RQMUrlUtility.jar"
 #               'w') as selenium_testscript_file:
 #         selenium_testscript_file.write(json.dumps(testscript_dict))
 #
+
+
+def _finditem(obj, key):
+    if key in obj: return obj[key]
+    for k, v in obj.items():
+        if isinstance(v,dict):
+            item = _finditem(v, key)
+            if item is not None:
+                return item
 
 
 def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
@@ -244,8 +255,8 @@ def get_testcase_by_id(project, testcase_id):
                             r'{}'.format(testscript_details_dict['ns2:testscript']['ns2:webId']),
                             r'{}'.format(testscript_details_dict['ns2:testscript']['ns3:title']),
                             r'{}'.format(testscript_step['ns9:title']),
-                            r'{}'.format(step_description['div:div'] if step_description else ''),
-                            r'{}'.format(step_expected_result['div:div'] if step_expected_result else ''),
+                            r'{}'.format(_finditem(step_description['div:div'], '#text') if step_description else ''),
+                            r'{}'.format(_finditem(step_expected_result['div:div'], '#text') if step_expected_result else ''),
                             r'{}'.format(step_comment if step_comment else '')
                     ])
 
@@ -297,9 +308,9 @@ def get_testcases(project, testcases_url=None, get_page=0):
         # Convert the XML to JSON
         all_testcases_dict = xmltodict.parse(testcases_xml_text)
 
-        # Write the JSON form the response to file at
-        # 'rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_page_{}.txt'
-        with open('rqm_url_utility_testing\\selenium_testcases\\project_{}_testcases_page_{}.txt'.format(project,
+        # Write the JSON form of the response to file at
+        # 'rqm_url_utility_testing\\selenium_testcases\\project_page_{}_testcases_page_{}.txt'
+        with open('rqm_url_utility_testing\\selenium_testcases\\project_page_{}_testcases_page_{}.txt'.format(project,
                 str(get_page)), 'w') as selenium_testcases_file:
             selenium_testcases_file.write(json.dumps(all_testcases_dict))
 
@@ -335,6 +346,13 @@ def get_testcases(project, testcases_url=None, get_page=0):
                 # print(json.dumps(link))
                 if link['@title'] == 'Web Console':
                     testcase_id = link['@href'].split('&id=')[1]
+
+                    # list_of_testcase_files = glob.glob(RQM_URL_UTILITY_FOLDER + r'selenium_testcase_details/*.csv')
+                    # latest_testcase_filepath = max(list_of_testcase_files, key=os.path.getctime)
+                    # latest_testcase_filename = os.path.basename(latest_testcase_filepath)
+                    # latest_testcase_file_id = latest_testcase_filename[9:-4]
+                    # print(latest_testcase_file_id)
+
                     print("Test Case ID >>> "+str(testcase_id)+" >>> Now get details of this Test Case .")
 
                     # get_testscript_by_id(project, testscript_id)
@@ -404,7 +422,7 @@ def jazz_login():
 
         print("All Projects => " + str(project_titles))
 
-        # Write the JSON form the response to file at
+        # Write the JSON form of the response to file at
         # 'rqm_url_utility_testing\\selenium_projects\\projects.txt'
         with open('rqm_url_utility_testing\\selenium_projects\\projects.txt', 'w') as selenium_projects_file:
             selenium_projects_file.write(json.dumps(all_projects_dict))
