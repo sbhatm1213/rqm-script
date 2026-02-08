@@ -27,7 +27,6 @@ TIMEOUT = 30
 
 JAZZ_LOGIN_URL = r"https://jazz.cerner.com:9443/qm/auth/authrequired"
 JAZZ_NET_USERNAME = "sb063964"
-# JAZZ_NET_PASSWORD = "myjarvis@123"
 JAZZ_NET_PASSWORD = sys.argv[1] #you need to pass your password as command-line argument
 GET_FROM_PAGE = sys.argv[2] #you need to pass the page-number from which script should get testcases as command-line argument
 
@@ -99,14 +98,6 @@ def run_rqm_url_utility(result_write_path, jazz_get_resources_url):
         subprocess.check_output(args, shell=True)
     except subprocess.CalledProcessError as e:
         print(e.output)
-        # server = smtplib.SMTP('smtp.gmail.com', 587)
-        # server.starttls()
-        # server.login("sowjanya13fb@gmail.com", "jarvis@123")
-        #
-        # msg = str(e.output)
-        # server.sendmail("sowjanya13fb@gmail.com", "sbhatm1213@gmail.com", msg)
-        # server.quit()
-
     # rqm.check_returncode() # DO NOT DELETE - OLD WORKING LINE
 
 
@@ -164,14 +155,6 @@ def get_testcase_by_id(project, testcase_id):
 
     except Exception as e:
         print(str(e))
-        # server = smtplib.SMTP('smtp.gmail.com', 587)
-        # server.starttls()
-        # server.login("sowjanya13fb@gmail.com", "jarvis@123")
-        #
-        # msg = str(e)
-        # server.sendmail("sowjanya13fb@gmail.com", "sbhatm1213@gmail.com", msg)
-        # server.quit()
-        # jazz_login()
         pass
     # print(xmltodict.parse(testcase_details))
 
@@ -277,14 +260,6 @@ def get_testcases(project, testcases_url=None, get_page=GET_FROM_PAGE):
 
     except TimeoutException as e:
         print("Timed out waiting for page to load")
-        # print(str(e))
-        # server = smtplib.SMTP('smtp.gmail.com', 587)
-        # server.starttls()
-        # server.login("sowjanya13fb@gmail.com", "jarvis@123")
-        #
-        # msg = str(e)
-        # server.sendmail("sowjanya13fb@gmail.com", "sbhatm1213@gmail.com", msg)
-        # server.quit()
         jazz_login()
 
 
@@ -358,14 +333,6 @@ def jazz_login():
 
     except TimeoutException as e:
         print("Timed out waiting for page to load")
-        # print(str(e))
-        # server = smtplib.SMTP('smtp.gmail.com', 587)
-        # server.starttls()
-        # server.login("sowjanya13fb@gmail.com", "jarvis@123")
-        #
-        # msg = str(e)
-        # server.sendmail("sowjanya13fb@gmail.com", "sbhatm1213@gmail.com", msg)
-        # server.quit()
         jazz_login()
 
 
@@ -374,131 +341,3 @@ if __name__ == "__main__":
     jazz_login()
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
 
-    # get_test_cases_json()
-
-#
-# def get_rqm_error_logs():
-#     logging.basicConfig(filename=MEDIA_ROOT + '/jazz/logs_{}.txt'.format(datetime.datetime.date(datetime.datetime.now())),
-#                         format='%(asctime)s %(message)s', level=logging.DEBUG)
-#     # all_testcase_files = glob.glob(MEDIA_ROOT + '/jazz/testcase_details/*.txt')
-#     testcase_pages = glob.glob(MEDIA_ROOT + '/jazz/selenium_testcases/*.txt')
-#     print("Number of pages => " + str(len(testcase_pages)))
-#     pages = [int(page.split("page_")[2].split(".txt")[0]) for page in testcase_pages]
-#     # print(sorted(pages)[::-1][:50])
-#     # print(sorted(testcase_pages)[::-1][:30])
-#     # exit()
-#     all_testcase_links = []
-#     for page in sorted(testcase_pages):
-#         with open(page) as testcase_page:
-#             page_details = json.loads(testcase_page.read())
-#             current_50_links = [ent['link']
-#                                 for ent in page_details['feed']['entry']]
-#             all_testcase_links += current_50_links
-#
-#     # print(all_testcase_links[::-1][:50])
-#     # exit()
-#     tc_filenames = []
-#     all_tc_ids = []
-#     for tc_links in all_testcase_links:
-#         for links in tc_links:
-#             if links['@title'] == 'Web Console':
-#                 tc_id = links['@href'].split('&id=')[1]
-#             elif 'com.ibm.rqm.integration.service.IIntegrationService/resources/' in links['@href']:
-#                 tc_project = links['@href'].split(
-#                     'com.ibm.rqm.integration.service.IIntegrationService/resources/')[1].split('/testcase')[0]
-#         tc_file_name = MEDIA_ROOT + '/jazz/testcase_details\\' + \
-#                        str(tc_project) + '_testcase_' + str(tc_id) + '.txt'
-#         all_tc_ids.append(tc_id)
-#         tc_filenames.append(tc_file_name)
-#
-#     print("Actual number of testcases to be got => " + str(len(list(set(tc_filenames)))))
-#
-#     all_testcase_files = glob.glob(MEDIA_ROOT + '/jazz/testcase_details/*.txt')
-#
-#     print("But number of testcases got => " + str(len(list(set(all_testcase_files)))))
-#
-#     missed_tc_filenames = []
-#     missed_ts_filenames = []
-#     readerror_tc_filenames = []
-#     readerror_ts_filenames = []
-#     missed_tc_filenames += [filename for filename in tc_filenames if filename not in all_testcase_files]
-#     # for filename in list(set(tc_filenames)):
-#     #     if filename not in list(set(all_testcase_files)):
-#     #         print(filename)
-#     #         exit()
-#     # print(missed_tc_filenames[:20])
-#     print("So number of missed testcases => " + str(len(missed_tc_filenames)))
-#
-#     df_tc = pd.DataFrame({'missed_testcase_links': missed_tc_filenames})
-#     df_tc.to_csv(MEDIA_ROOT + '/jazz/missed_testcases_{}.csv'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
-#     # exit()
-#
-#     readtcfile_errors_count = 0
-#     readtsfile_errors_count = 0
-#     ts_notfound_count = 0
-#     for testcase_file in all_testcase_files:
-#         # print(testcase_file)
-#         with open(testcase_file, encoding="utf8") as testcase_details:
-#             try:
-#                 testcase_details_str = testcase_details.read()
-#                 testcase_details_dict = xmltodict.parse(testcase_details_str)
-#             except Exception as e:
-#                 logging.error("Some Error while trying to read Testcase file : \n" + testcase_file, str(e))
-#                 readtcfile_errors_count += 1
-#                 readerror_tc_filenames += [testcase_file]
-#
-#             # logging.info("testscripts = >>>"+str(testcase_details_dict['ns2:testcase'].get('ns2:testscript')))
-#
-#             all_testscripts = None
-#             if isinstance(testcase_details_dict['ns2:testcase'].get('ns2:testscript'), dict):
-#                 all_testscripts = [
-#                     testcase_details_dict['ns2:testcase']['ns2:testscript']]
-#             elif isinstance(testcase_details_dict['ns2:testcase'].get('ns2:testscript'), list):
-#                 all_testscripts = testcase_details_dict['ns2:testcase']['ns2:testscript']
-#
-#             if all_testscripts:
-#                 for testscript in all_testscripts:
-#                     get_testscript_url = testscript['@href']
-#                     testscript_title = get_testscript_url.split('/testscript/')
-#                     testscript_id = get_testscript_url.split(':testscript:')
-#
-#                     testscript_file_xml = None
-#                     if len(testscript_id) > 1:
-#                         # testscript_file_xml = os.path.join(
-#                         #     MEDIA_ROOT, 'jazz', 'testscript_details', 'testscript_' + str(testscript_id[1]) + '.txt')
-#                         testscript_file_xml = MEDIA_ROOT + '/jazz/testscript_details/testscript_{}.txt'.format(str(testscript_id[1]))
-#                     elif len(testscript_title) > 1:
-#                         # testscript_file_xml = os.path.join(
-#                         #     MEDIA_ROOT, 'jazz', 'testscript_details', 'testscript_' + str(testscript_title[1]) + '.txt')
-#                         testscript_file_xml = MEDIA_ROOT + '/jazz/testscript_details/testscript_{}.txt'.format(str(testscript_title[1]))
-#
-#                     if testscript_file_xml:
-#                         if os.path.exists(testscript_file_xml):
-#                             # print("Testscript file EXISTS => " + testscript_file_xml)
-#                             # logging.info("Testscript file EXISTS => " + testscript_file_xml)
-#                             with open(testscript_file_xml, 'r', encoding="utf8") as testscript_file:
-#                                 try:
-#                                     testscript_details_str = testscript_file.read()
-#                                     testscript_details_dict = xmltodict.parse(testscript_details_str)
-#                                 except Exception as e:
-#                                     # logging.error("Some Error while trying to read Testscript file : \n" + testscript_file_xml)
-#                                     readtsfile_errors_count += 1
-#                                     readerror_ts_filenames += [get_testscript_url]
-#                         else:
-#                             # logging.error("Testscript file was NOT FOUND for : " + testscript_file_xml)
-#                             ts_notfound_count += 1
-#                             missed_ts_filenames += [get_testscript_url]
-#             else:
-#                 continue
-#     print(readtcfile_errors_count)
-#     print(readtsfile_errors_count)
-#     print(ts_notfound_count)
-#
-#     df_ts = pd.DataFrame({'missed_testscript_links': missed_ts_filenames})
-#     df_ts.to_csv(MEDIA_ROOT + '/jazz/missed_testscripts_{}.csv'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
-#
-#     df_tc_read = pd.DataFrame({'read_tc_errors': readerror_tc_filenames})
-#     df_tc_read.to_csv(MEDIA_ROOT + '/jazz/readerror_tc_{}.csv'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
-#     df_ts_read = pd.DataFrame({'read_ts_errors': readerror_ts_filenames})
-#     df_ts_read.to_csv(MEDIA_ROOT + '/jazz/readerror_ts_{}.csv'.format(datetime.datetime.today().strftime('%Y-%m-%d')))
-#     return True
